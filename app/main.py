@@ -47,4 +47,6 @@ def delete_user(user_id: int):
 @app.get("/health")
 def get_health():
     return {"status": "ok"}
-#python -m uvicorn app.main:app --reload
+# python -m uvicorn app.main:app --reload
+# python -m venv venv
+# source venv/Scripts/activate
