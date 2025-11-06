@@ -157,12 +157,28 @@ def update_user(user_id: int, payload: UserRead, db: Session = Depends(get_db)):
     except IntegrityError:
         db.rollback()
 
-# @app.patch("/api/users.{user_id}")
-# def partial_update_user(db: Session = Depends(get_db)):
+@app.patch("/api/users/{user_id}", response_model=UserRead, status_code=status.HTTP_200_OK)
+def patch_user(user_id: int, payload: UserPartialUpdate, db: Session = Depends(get_db)):
+    db_user = db.query(UserDB).filter(UserDB.id == user_id).first()
+    if not db_user:
+        raise HTTPException(status_code=404, detail="Item not found")
+ 
+    # Update only the fields provided
+    update_data = payload.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_user, key, value)
+    try:
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+    except IntegrityError:
+        db.rollback()
+    return db_user
+#Project
+@app.put("/api/projects.{project_id}")
+def update_project(db: Session = Depends(get_db)):
+    return
 
-# #Project
-# @app.put("/api/projects.{project_id}")
-# def update_project(db: Session = Depends(get_db)):
-
-# @ap# DELETE a user (triggers ORM cascade -> deletes their projects too)p.patch("/api/projects.{project_id}")
-# def partial_update_project(db: Session = Depends(get_db)):
+@app.put("/api/projects.{project_id}")
+def partial_update_project(db: Session = Depends(get_db)):
+    return
