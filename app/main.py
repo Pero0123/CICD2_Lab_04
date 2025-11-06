@@ -137,7 +137,7 @@ def delete_user(user_id: int, db: Session = Depends(get_db)) -> Response:
 #HomeWork Section
 
 #User
-@app.put("/api/users.{user_id}")
+@app.put("/api/users/{user_id}")
 def update_user(user_id: int, payload: UserRead, db: Session = Depends(get_db)):
     user = db.get(UserDB, user_id)
     if not user:
