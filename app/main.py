@@ -83,8 +83,7 @@ def get_user_projects(user_id: int, db: Session = Depends(get_db)):
     #return db.execute(stmt).scalars().all()
 
 @app.post("/api/users/{user_id}/projects", response_model=ProjectRead, status_code=201)
-def create_user_project(user_id: int, project: ProjectCreateForUser, db: Session =
-    Depends(get_db)):
+def create_user_project(user_id: int, project: ProjectCreateForUser, db: Session = Depends(get_db)):
     user = db.get(UserDB, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -124,7 +123,7 @@ def add_user(payload: UserCreate, db: Session = Depends(get_db)):
         db.rollback()
         raise HTTPException(status_code=409, detail="User already exists")
     return user
-    # DELETE a user (triggers ORM cascade -> deletes their projects too)
+    
 
 @app.delete("/api/users/{user_id}", status_code=204)
 def delete_user(user_id: int, db: Session = Depends(get_db)) -> Response:
@@ -134,3 +133,36 @@ def delete_user(user_id: int, db: Session = Depends(get_db)) -> Response:
     db.delete(user) # <-- triggers cascade="all, delete-orphan" on projects
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+#HomeWork Section
+
+#User
+@app.put("/api/users.{user_id}")
+def update_user(user_id: int, payload: UserRead, db: Session = Depends(get_db)):
+    user = db.get(UserDB, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail = "User not found")
+    userNew = UserDB(**payload.model_dump())
+    try:
+        SQLStatement = update(UserDB).where(UserDB.id == user_id).values(
+            id=userNew.id,
+            name=userNew.name,
+            email=userNew.email,
+            age=userNew.age,
+            student_id=userNew.student_id
+        )
+        db.execute(SQLStatement)
+        db.commit()
+    
+    except IntegrityError:
+        db.rollback()
+
+# @app.patch("/api/users.{user_id}")
+# def partial_update_user(db: Session = Depends(get_db)):
+
+# #Project
+# @app.put("/api/projects.{project_id}")
+# def update_project(db: Session = Depends(get_db)):
+
+# @ap# DELETE a user (triggers ORM cascade -> deletes their projects too)p.patch("/api/projects.{project_id}")
+# def partial_update_project(db: Session = Depends(get_db)):

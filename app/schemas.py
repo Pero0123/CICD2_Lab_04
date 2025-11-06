@@ -24,8 +24,8 @@ class UserRead(BaseModel):
     email: EmailStr
     age: AgeInt
     student_id: StudentIdStr
-    # Optionally return users with their projects
-
+    
+# Optionally return users with their projects
 class ProjectRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
@@ -35,21 +35,23 @@ class ProjectRead(BaseModel):
 
 class UserReadWithProjects(UserRead):
     projects: List[ProjectRead] = []
-    # ---------- Projects ----------
-    # Flat route: POST /api/projects (owner_id in body)
-
+    
+# ---------- Projects ----------
+# Flat route: POST /api/projects (owner_id in body)
 class ProjectCreate(BaseModel):
     name: ProjectNameStr
     description: Optional[DescStr] = None
     owner_id: int
-    # Nested route: POST /api/users/{user_id}/projects (owner implied by path)
+
+# Nested route: POST /api/users/{user_id}/projects (owner implied by path)
 class ProjectCreateForUser(BaseModel):
     name: ProjectNameStr
     description: Optional[DescStr] = None
 
 class ProjectReadWithOwner(ProjectRead):
     owner: Optional["UserRead"] = None # use selectinload(ProjectDB.owner) when querying
-    # ---------- Courses ----------
+    
+# ---------- Courses ----------
 class CourseCreate(BaseModel):
     code: CodeStr
     name: CourseNameStr
