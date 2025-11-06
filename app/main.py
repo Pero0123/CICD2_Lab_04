@@ -174,11 +174,38 @@ def patch_user(user_id: int, payload: UserPartialUpdate, db: Session = Depends(g
     except IntegrityError:
         db.rollback()
     return db_user
-#Project
-@app.put("/api/projects.{project_id}")
-def update_project(db: Session = Depends(get_db)):
-    return
 
-@app.put("/api/projects.{project_id}")
-def partial_update_project(db: Session = Depends(get_db)):
-    return
+#Project
+@app.put("/api/users/project_put/{project_id}", response_model=ProjectRead, status_code=status.HTTP_200_OK)
+def put_project(project_id: int, payload: ProjectRead, db: Session = Depends(get_db)):
+    projectIdCheck = db.get(ProjectDB, project_id)
+    if not projectIdCheck:
+        raise HTTPException(status_code=404, detail="Project not found")
+    projectNew = ProjectDB(**payload.model_dump())
+    try:
+        stmt = update(ProjectDB).where(ProjectDB.id == project_id).values(id = projectNew.id, name=projectNew.name, description=projectNew.description, owner_id=projectNew.owner_id)
+        db.execute(stmt)
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="Project already exists")
+    return projectNew
+
+@app.patch("/api/users/project_patch/{project_id}", response_model=ProjectRead)
+def partial_edit_project(project_id: int, payload: ProjectPartialUpdate, db: Session = Depends(get_db)):
+    # get fields which where sent excluding unset fields
+    new_details = db.query(ProjectDB).filter(ProjectDB.id == project_id).first()
+    if not new_details:
+        raise HTTPException(status_code=404, detail="Item not found")
+ 
+    # update only the updated fields
+    update_data = payload.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(new_details, key, value)
+    try:
+        db.add(new_details)
+        db.commit()
+        db.refresh(new_details)
+    except IntegrityError:
+        db.rollback()
+    return new_details
